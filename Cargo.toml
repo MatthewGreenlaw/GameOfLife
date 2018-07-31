@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Matt Greenlaw <walneergwehttam@googlemail.com>"]
 
 [dependencies]
+sdl2 = "0.31"
+ggez = "0.4"
+rand = "0.5.4"
