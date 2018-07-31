@@ -1,4 +1,4 @@
-# Introduction
+# Project Introduction
 This repository contains my final project for CS 410: Rust Programming at Portland State University. The project is an implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) using [Rust](https://www.rust-lang.org/en-US/) and the [ggez](https://github.com/ggez/ggez) 2D graphics framework. 
 
 
@@ -17,8 +17,3 @@ This repository contains my final project for CS 410: Rust Programming at Portla
    * Move SDL2.dll 
     * from: `C:\{path to unzipped folder}\SDL2-2.0.8\lib\x86`
     * to: project root next to Cargo.toml
-
-  * In Cargo.toml, add:
-```[dependencies]
-sdl2 = "0.31"
-ggez = "0.4"```
