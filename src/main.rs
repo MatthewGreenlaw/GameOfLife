@@ -150,7 +150,7 @@ impl World {
 		}
 	}
 
-	pub fn num_neighbors(&self, local:&Option<Cell>) -> i32 {
+	pub fn num_neighbors(&self, x:i32, y:i32) -> i32 {
 		//let mut num_neighbors = 0;
 		let eval_neighbor = |x:i32, y:i32| {
 			match self.map[x as usize][y as usize] {
@@ -168,65 +168,83 @@ impl World {
 		let bottom = |a:i32, b:i32| eval_neighbor(a  , b+1);
 		let bright = |a:i32, b:i32| eval_neighbor(a+1, b+1);
 
-		let x:i32;
-		let y:i32;
-		match local {
-			Some(cell) => {
-				//println!("Some");
-				x = cell.coord.x;
-				y = cell.coord.y;
-			},
-			None => return 0,
-		}
+		// let x:i32;
+		// let y:i32;
+		// match local {
+		// 	Some(cell) => {
+		// 		//println!("Some");
+		// 		x = cell.coord.x;
+		// 		y = cell.coord.y;
+		// 	},
+		// 	None => return 0,
+		// }
 		
 
 		// c n
 		// n n
 		if x == 0 && y == 0 {
-			right(x, y) + bottom(x, y) + bright(x, y)
+			let ret = right(x, y) + bottom(x, y) + bright(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n c
 		// n n
 		else if x == MAX_WIDTH-1 && y == 0 {
-			left(x, y)+bleft(x, y)+bottom(x, y)
+			let ret = left(x, y)+bleft(x, y)+bottom(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n n
 		// c n
 		else if x == 0 && y == MAX_HEIGHT-1 {
-			top(x, y)+tright(x, y)+right(x, y)
+			let ret = top(x, y)+tright(x, y)+right(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n n
 		// n c
 		else if x == MAX_WIDTH-1 && y == MAX_HEIGHT-1 {
-			tleft(x, y)+top(x, y)+left(x, y)
+			let ret = tleft(x, y)+top(x, y)+left(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n n
 		// c n
 		// n n
 		else if x == 0 && y > 0 && y < MAX_HEIGHT-1 {
-			top(x, y)+tright(x, y)+right(x, y)+bottom(x, y)+bright(x, y)
+			let ret = top(x, y)+tright(x, y)+right(x, y)+bottom(x, y)+bright(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n c n
 		// n n n
 		else if y == 0 && x > 0 && x < MAX_WIDTH-1 {
-			left(x, y)+right(x, y)+bleft(x, y)+bottom(x, y)+bright(x, y)
+			let ret = left(x, y)+right(x, y)+bleft(x, y)+bottom(x, y)+bright(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n n
 		// n c
 		// n n
 		else if x == MAX_WIDTH-1 && y > 0 && y < MAX_HEIGHT-1 {
-			tleft(x, y)+top(x, y)+left(x, y)+bleft(x, y)+bottom(x, y)
+			let ret = tleft(x, y)+top(x, y)+left(x, y)+bleft(x, y)+bottom(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n n n
 		// n c n
 		else if y == MAX_HEIGHT-1 && x > 0 && x < MAX_WIDTH-1 {
-			tleft(x, y)+top(x, y)+tright(x, y)+left(x, y)+right(x, y)
+			let ret = tleft(x, y)+top(x, y)+tright(x, y)+left(x, y)+right(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 		// n n n
 		// n c n
 		// n n n
 		else {
-			tleft(x, y)+top(x, y)+tright(x, y)+left(x, y)+right(x, y)+bleft(x, y)+bottom(x, y)+bright(x, y)
+			let ret = tleft(x, y)+top(x, y)+tright(x, y)+left(x, y)+right(x, y)+bleft(x, y)+bottom(x, y)+bright(x, y);
+			println!("{:?}", ret);
+			ret
 		}
 	}
 }
@@ -245,7 +263,7 @@ impl event::EventHandler for World{
 
 		for x in 0..MAX_WIDTH {
 			for y in 0..MAX_HEIGHT {
-				let live_neighbors = self.num_neighbors(&self.map[x as usize][y as usize]);
+				let live_neighbors = self.num_neighbors(x, y);
 				//println!("live_neighbors x, y: {:?} @ {}, {}", live_neighbors, x, y);
 				match self.map[x as usize][y as usize] {
 					Some(_) => {
@@ -254,12 +272,18 @@ impl event::EventHandler for World{
 							update = Life::Dies;
 							//println!("Dies");
 						}
+
+						//Life is born
+						if live_neighbors == 3 {
+							update = Life::Born;
+							println!("Born");
+						}
 					},
 					None => {
 						//Life is born
 						if live_neighbors == 3 {
 							update = Life::Born;
-							//println!("Born");
+							println!("Born");
 						}
 					},
 				}
