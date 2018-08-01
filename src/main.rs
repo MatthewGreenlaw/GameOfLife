@@ -13,6 +13,11 @@ const MAX_HEIGHT:i32 = 50;
 //Define Map of coordinates to display
 const MAP: (i32, i32) = (MAX_WIDTH * PIXELS, MAX_HEIGHT * PIXELS); //Pixels in the map
 
+enum Color {
+	Red,
+	Yellow,
+}
+
 //Coordinates for ggez to draw cells
 struct Coord {
 	x: i32,
@@ -29,7 +34,7 @@ impl Coord {
 
 	//Tell ggez what color to render a location
 	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-		graphics::set_color(ctx, [1.0, 1.0, 1.0, 1.0].into())?; 
+		graphics::set_color(ctx, [0.0, 1.0, 0.0, 1.0].into())?; 
 		graphics::rectangle(ctx, graphics::DrawMode::Fill, graphics::Rect::new_i32 (
 		self.x as i32 * PIXELS as i32, 
 		self.y as i32 * PIXELS as i32,
@@ -96,6 +101,12 @@ impl World {
 			let x = range.gen_range::<i32>(0, MAX_WIDTH as i32);
 			let y = range.gen_range::<i32>(0, MAX_HEIGHT as i32);
 			locals[x as usize][y as usize] = Some(Coord::new(x, y));
+
+			if x+5 < MAX_WIDTH {
+				println!("x = {:?}", x);
+				locals[(x+1) as usize][y as usize] = Some(Coord::new(x+1, y));
+				locals[(x+2) as usize][y as usize] = Some(Coord::new(x+2, y));
+			}
 		}
 
 		World {
@@ -103,10 +114,14 @@ impl World {
 		}
 	}
 
-	pub fn num_neighbors(&self, x:i32, y:i32) -> i32 {
+	pub fn life_pattern(x: i32, y: i32)  {
+
+	}
+
+	pub fn num_neighbors(generation:&Vec<Vec<Option<Coord>>>, x:i32, y:i32) -> i32 {
 		//let mut num_neighbors = 0;
 		let eval_neighbor = |x:i32, y:i32| {
-			match self.map[x as usize][y as usize] {
+			match generation[x as usize][y as usize] {
 				Some(_) => 1, //Living neighbor
 				None    => 0, //Dead neighbor
 			}
@@ -125,28 +140,28 @@ impl World {
 		// n n
 		if x == 0 && y == 0 {
 			let ret = right(x, y) + bottom(x, y) + bright(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n c
 		// n n
 		else if x == MAX_WIDTH-1 && y == 0 {
 			let ret = left(x, y)+bleft(x, y)+bottom(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n n
 		// c n
 		else if x == 0 && y == MAX_HEIGHT-1 {
 			let ret = top(x, y)+tright(x, y)+right(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n n
 		// n c
 		else if x == MAX_WIDTH-1 && y == MAX_HEIGHT-1 {
 			let ret = tleft(x, y)+top(x, y)+left(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n n
@@ -154,14 +169,14 @@ impl World {
 		// n n
 		else if x == 0 && y > 0 && y < MAX_HEIGHT-1 {
 			let ret = top(x, y)+tright(x, y)+right(x, y)+bottom(x, y)+bright(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n c n
 		// n n n
 		else if y == 0 && x > 0 && x < MAX_WIDTH-1 {
 			let ret = left(x, y)+right(x, y)+bleft(x, y)+bottom(x, y)+bright(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n n
@@ -169,14 +184,14 @@ impl World {
 		// n n
 		else if x == MAX_WIDTH-1 && y > 0 && y < MAX_HEIGHT-1 {
 			let ret = tleft(x, y)+top(x, y)+left(x, y)+bleft(x, y)+bottom(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n n n
 		// n c n
 		else if y == MAX_HEIGHT-1 && x > 0 && x < MAX_WIDTH-1 {
 			let ret = tleft(x, y)+top(x, y)+tright(x, y)+left(x, y)+right(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 		// n n n
@@ -184,7 +199,7 @@ impl World {
 		// n n n
 		else {
 			let ret = tleft(x, y)+top(x, y)+tright(x, y)+left(x, y)+right(x, y)+bleft(x, y)+bottom(x, y)+bright(x, y);
-			println!("{:?}", ret);
+			//println!("{:?}", ret);
 			ret
 		}
 	}
@@ -200,13 +215,17 @@ impl event::EventHandler for World{
 //Must override at least update() and draw() methods
 
 	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
+		//A copy of the map so we can calculate it while making 
+		//changes to the real map. Is this the right approach?
+		let generation: Vec<Vec<Option<Coord>>> = self.map.to_vec();
+
 		let mut update:Life = Life::Sustains;
 
 		for x in 0..MAX_WIDTH {
 			for y in 0..MAX_HEIGHT {
-				let live_neighbors = self.num_neighbors(x, y);
+				let live_neighbors = World::num_neighbors(&generation, x, y);
 				//println!("live_neighbors x, y: {:?} @ {}, {}", live_neighbors, x, y);
-				match self.map[x as usize][y as usize] {
+				match generation[x as usize][y as usize] {
 					//Some means it is alive
 					Some(_) => {
 						//Dies
@@ -220,7 +239,7 @@ impl event::EventHandler for World{
 						//Life is born
 						if live_neighbors == 3 {
 							update = Life::Born;
-							println!("Born");
+							//println!("Born");
 						}
 					},
 				}
@@ -233,6 +252,8 @@ impl event::EventHandler for World{
 				
 			}
 		}
+
+		//self.map = generation;
 		Ok(())
 	}
 
@@ -260,7 +281,7 @@ fn main() {
     	.build().expect("Failed to build game.");
 
     //Build the world
-    let life = &mut World::new(100);//@todo: Need to be able to adjust this with cmd line input, etc
+    let life = &mut World::new(5);//@todo: Need to be able to adjust this with cmd line input, etc
 
     //Run the main game loop
     //https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
