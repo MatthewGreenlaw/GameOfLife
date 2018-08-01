@@ -26,6 +26,18 @@ impl Coord {
 			y: y,
 		}
 	}
+
+	//Tell ggez what color to render a location
+	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
+		graphics::set_color(ctx, [1.0, 1.0, 1.0, 1.0].into())?; 
+		graphics::rectangle(ctx, graphics::DrawMode::Fill, graphics::Rect::new_i32 (
+		self.x as i32 * PIXELS as i32, 
+		self.y as i32 * PIXELS as i32,
+		PIXELS as i32,
+		PIXELS as i32,))?;
+		
+		Ok(())
+	}
 }
 
 impl Eq for Coord {}
@@ -63,86 +75,27 @@ impl PartialOrd for Coord {
 	}
 }
 
-//A cell on the map representing life
-//@todo: Do I need to have a life variable? does it have life because it exists?
-struct Cell {
-	coord: Coord,
-	life: bool,
-}
-
-
-impl Cell {
-	pub fn new(x: i32, y: i32) -> Cell {
-		Cell {
-			coord: Coord::new(x, y),
-			life: true,
-		}
-	}
-
-	// pub fn update(&mut self, health: bool) {
-	// 	self.life = health;
-	// }
-
-	//Tell ggez what color to render a location
-	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-		if self.life { 
-			graphics::set_color(ctx, [1.0, 1.0, 1.0, 1.0].into())?; 
-			graphics::rectangle(ctx, graphics::DrawMode::Fill, graphics::Rect::new_i32 (
-			self.coord.x as i32 * PIXELS as i32, 
-			self.coord.y as i32 * PIXELS as i32,
-			PIXELS as i32,
-			PIXELS as i32,))?;
-		}
-		
-		Ok(())
-	}
-}
-
-impl Clone for Cell {
-	fn clone(&self) -> Cell {
-		Cell {
-			coord: Coord::new(self.coord.x, self.coord.y),
-			life: self.life,
-		}
-	}
-}
-
-impl Eq for Cell {}
-
-impl PartialEq for Cell {
-	fn eq(&self, other: &Cell) -> bool {
-		self.coord == other.coord
-	}
-}
-
-impl Ord for Cell {
-	fn cmp(&self, other: &Cell) -> Ordering {
-		self.coord.cmp(&other.coord)
-	}
-}
-
-impl PartialOrd for Cell {
-	fn partial_cmp(&self, other: &Cell) -> Option<Ordering> {
-		 self.coord.partial_cmp(&other.coord)
+impl Clone for Coord {
+	fn clone(&self) -> Coord {
+		Coord::new(self.x, self.y)
 	}
 }
 
 //Define properties of the game
 struct World {
-	map: Vec<Vec<Option<Cell>>>,
+	map: Vec<Vec<Option<Coord>>>,
 }
 
 impl World {
 	//Generate a new world given its population
 	pub fn new (num_pop: i32) -> World {
 		let mut range = rand::thread_rng();
-		let mut locals: Vec<Vec<Option<Cell>>> = vec![vec![None; MAX_WIDTH as usize]; MAX_HEIGHT as usize];	
+		let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; MAX_WIDTH as usize]; MAX_HEIGHT as usize];	
 
 		for _i in 0..num_pop {
 			let x = range.gen_range::<i32>(0, MAX_WIDTH as i32);
 			let y = range.gen_range::<i32>(0, MAX_HEIGHT as i32);
-			let local = Cell::new(x, y);
-			locals[x as usize][y as usize] = Some(local);
+			locals[x as usize][y as usize] = Some(Coord::new(x, y));
 		}
 
 		World {
@@ -154,8 +107,8 @@ impl World {
 		//let mut num_neighbors = 0;
 		let eval_neighbor = |x:i32, y:i32| {
 			match self.map[x as usize][y as usize] {
-				Some(_) => 1,
-				None => 0,
+				Some(_) => 1, //Living neighbor
+				None    => 0, //Dead neighbor
 			}
 		};
 
@@ -166,19 +119,7 @@ impl World {
 		let right  = |a:i32, b:i32| eval_neighbor(a+1, b  );
 		let bleft  = |a:i32, b:i32| eval_neighbor(a-1, b+1);
 		let bottom = |a:i32, b:i32| eval_neighbor(a  , b+1);
-		let bright = |a:i32, b:i32| eval_neighbor(a+1, b+1);
-
-		// let x:i32;
-		// let y:i32;
-		// match local {
-		// 	Some(cell) => {
-		// 		//println!("Some");
-		// 		x = cell.coord.x;
-		// 		y = cell.coord.y;
-		// 	},
-		// 	None => return 0,
-		// }
-		
+		let bright = |a:i32, b:i32| eval_neighbor(a+1, b+1);		
 
 		// c n
 		// n n
@@ -266,19 +207,15 @@ impl event::EventHandler for World{
 				let live_neighbors = self.num_neighbors(x, y);
 				//println!("live_neighbors x, y: {:?} @ {}, {}", live_neighbors, x, y);
 				match self.map[x as usize][y as usize] {
+					//Some means it is alive
 					Some(_) => {
 						//Dies
 						if live_neighbors < 2 || live_neighbors > 3 {
 							update = Life::Dies;
 							//println!("Dies");
 						}
-
-						//Life is born
-						if live_neighbors == 3 {
-							update = Life::Born;
-							println!("Born");
-						}
 					},
+					//None means it is dead
 					None => {
 						//Life is born
 						if live_neighbors == 3 {
@@ -289,7 +226,7 @@ impl event::EventHandler for World{
 				}
 
 				match update {
-					Life::Born => {self.map[x as usize][y as usize] = Some(Cell::new(x,y));},
+					Life::Born => {self.map[x as usize][y as usize] = Some(Coord::new(x,y));},
 					Life::Dies => {self.map[x as usize][y as usize] = None;},
 					Life::Sustains => (),
 				}
@@ -323,7 +260,7 @@ fn main() {
     	.build().expect("Failed to build game.");
 
     //Build the world
-    let life = &mut World::new(500);//@todo: Need to be able to adjust this with cmd line input, etc
+    let life = &mut World::new(100);//@todo: Need to be able to adjust this with cmd line input, etc
 
     //Run the main game loop
     //https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
