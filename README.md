@@ -7,7 +7,7 @@ This repository contains my final project for CS 410: Rust Programming at Portla
       * [x] Cells
       * [x] Map
    2. [x] Setup ggez to work with game elements
-      * [x] [EventHandler](//https://docs.rs/ggez/0.3.1/ggez/event/trait.EventHandler.html)
+      * [x] [EventHandler](https://docs.rs/ggez/0.3.1/ggez/event/trait.EventHandler.html)
    3. [x] Implement the clasic Game of Life [rules](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules)
 
 2. [ ] Benchmark 2: Add UI (In-Progress)
