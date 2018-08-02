@@ -4,17 +4,17 @@ This repository contains my final project for CS 410: Rust Programming at Portla
 # Stages of Development
 1. [x] [Benchmark 1](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/Benchmark-1): Basic implementation
    1. [x] Create basic game elements
-     * [x] Cells
-     * [x] Map
+      * [x] Cells
+      * [x] Map
    2. [x] Setup ggez to work with game elements
-     * [x] [EventHandler](//https://docs.rs/ggez/0.3.1/ggez/event/trait.EventHandler.html)
+      * [x] [EventHandler](//https://docs.rs/ggez/0.3.1/ggez/event/trait.EventHandler.html)
    3. [x] Implement a clasic Game of Life [rules](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules)
 
 2. [ ] Benchmark 2: Add UI (In-Progress)
    1. [ ] Create basic UI elements
-     * [ ] Stats side-bar
-     * [ ] Insertion frame
-     * [ ] Options frame
+      * [ ] Stats side-bar
+      * [ ] Insertion frame
+      * [ ] Options frame
    2. [ ] Setup ggez to work with UI elements
 
 # Installation Instructions
