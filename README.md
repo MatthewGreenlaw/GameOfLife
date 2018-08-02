@@ -12,11 +12,12 @@ This repository contains my final project for CS 410: Rust Programming at Portla
       * [x] [run](https://docs.rs/ggez/0.3.1/ggez/event/fn.run.html)
    3. [x] Implement the clasic Game of Life [rules](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules)
 
-2. [ ] Benchmark 2: Add UI (In-Progress)
-   1. [ ] Create basic UI elements
-      * [ ] Stats side-bar
-      * [ ] Insertion frame
-      * [ ] Options frame
+2. [ ] Benchmark 2: Add UI
+   1. [x] Create basic UI elements
+      * [x] Game Map element
+      * [ ] Stats element
+      * [ ] Insertion element
+      * [ ] Options element
    2. [ ] Setup ggez to work with UI elements
 
 # Installation Instructions
