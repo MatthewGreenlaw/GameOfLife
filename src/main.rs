@@ -7,8 +7,8 @@ use ggez::{event, Context, GameResult, graphics};
 const PIXELS: i32 = 10; //Pixels in a coordinate
 
 //Maximum width and depth of the world
-const MAX_WIDTH:i32 = 50;
-const MAX_HEIGHT:i32 = 50;
+const MAX_WIDTH:i32 = 100;
+const MAX_HEIGHT:i32 = 100;
 
 //Define Map of coordinates to display
 const MAP: (i32, i32) = (MAX_WIDTH * PIXELS, MAX_HEIGHT * PIXELS); //Pixels in the map
@@ -34,12 +34,10 @@ impl Coord {
 
 	//Tell ggez what color to render a location
 	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-		graphics::set_color(ctx, [0.0, 1.0, 0.0, 1.0].into())?; 
+		graphics::set_color(ctx, [1.0, 1.0, 1.0, 1.0].into())?; 
 		graphics::rectangle(ctx, graphics::DrawMode::Fill, graphics::Rect::new_i32 (
-		self.x as i32 * PIXELS as i32, 
-		self.y as i32 * PIXELS as i32,
-		PIXELS as i32,
-		PIXELS as i32,))?;
+		self.x * PIXELS, self.y * PIXELS, PIXELS, PIXELS,))?;
+		//println!("Drawing x, y: {:?}, {}", self.x, self.y);
 		
 		Ok(())
 	}
@@ -102,8 +100,10 @@ impl World {
 			let y = range.gen_range::<i32>(0, MAX_HEIGHT as i32);
 			locals[x as usize][y as usize] = Some(Coord::new(x, y));
 
+			//Simulate a Blinker pattern
+			//https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 			if x+5 < MAX_WIDTH {
-				println!("x = {:?}", x);
+				//println!("x = {:?}", x);
 				locals[(x+1) as usize][y as usize] = Some(Coord::new(x+1, y));
 				locals[(x+2) as usize][y as usize] = Some(Coord::new(x+2, y));
 			}
@@ -114,9 +114,9 @@ impl World {
 		}
 	}
 
-	pub fn life_pattern(x: i32, y: i32)  {
+	// pub fn life_pattern(x: i32, y: i32)  {
 
-	}
+	// }
 
 	pub fn num_neighbors(generation:&Vec<Vec<Option<Coord>>>, x:i32, y:i32) -> i32 {
 		//let mut num_neighbors = 0;
@@ -219,10 +219,11 @@ impl event::EventHandler for World{
 		//changes to the real map. Is this the right approach?
 		let generation: Vec<Vec<Option<Coord>>> = self.map.to_vec();
 
-		let mut update:Life = Life::Sustains;
+		
 
 		for x in 0..MAX_WIDTH {
 			for y in 0..MAX_HEIGHT {
+				let mut update:Life = Life::Sustains;
 				let live_neighbors = World::num_neighbors(&generation, x, y);
 				//println!("live_neighbors x, y: {:?} @ {}, {}", live_neighbors, x, y);
 				match generation[x as usize][y as usize] {
@@ -258,13 +259,19 @@ impl event::EventHandler for World{
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+		let mut numdrawn:i32 = 0;
 		graphics::clear(ctx);
 		for row in self.map.iter() {//@todo: Maybe this is the cause of the slowdown. Only draw updated civs
 			for col in row.iter() {
 				match col {
-					Some(local) => local.draw(ctx)?,
+					Some(coord) => {
+						coord.draw(ctx)?;
+						numdrawn +=1;
+						//println!("Drew: {:?} @ {}, {}", numdrawn, coord.x, coord.y);
+					},
 					None => (),
 				}
+				
 			}
 		}
 		graphics::present(ctx);
@@ -281,7 +288,7 @@ fn main() {
     	.build().expect("Failed to build game.");
 
     //Build the world
-    let life = &mut World::new(5);//@todo: Need to be able to adjust this with cmd line input, etc
+    let life = &mut World::new(500);//@todo: Need to be able to adjust this with cmd line input, etc
 
     //Run the main game loop
     //https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
