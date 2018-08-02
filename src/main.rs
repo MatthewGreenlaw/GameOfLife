@@ -178,7 +178,7 @@ fn main() {
     	.build().expect("Failed to build game.");
     graphics::set_background_color(game, [1.0, 1.0, 1.0, 1.0].into());
     //Build the world
-    let life = &mut World::new(2000);//@todo: Need to be able to adjust this with cmd line input, etc
+    let life = &mut World::new(2500);//@todo: Need to be able to adjust this with cmd line input, etc
 
     //Run the main game loop
     match event::run(game, life){//https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
