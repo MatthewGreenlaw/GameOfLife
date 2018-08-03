@@ -20,9 +20,14 @@ This repository contains my final project for CS 410: Rust Programming at Portla
       * [x] Player interaction element
       * [x] Options element
    2. [ ] UI element functionality
-      * [ ]  Update stat area with game statistics
-      * [ ]  User interaction with player area
-      * [ ]  User interaction with stat area
+      * [x] User interaction with window
+         * [x] Capture mouse clicks
+         * [x] Identify which area was clicked
+      * [x] Update stat area with game statistics
+      * [ ] Add basic option menu
+2. [ ] Benchmark 3: User input and Advanced settings      
+   1. [x] Add interaction menu to add life
+   2. [x] Add advanced settings (IE. Play non-standard rules)
 
 # Installation Instructions
 ## Windows 10 installation

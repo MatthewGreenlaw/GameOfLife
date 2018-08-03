@@ -1,8 +1,7 @@
 extern crate rand;
 extern crate ggez;
 use rand::Rng;
-use ggez::event::{self, MouseState, MouseButton};
-use ggez::{Context, GameResult, graphics};
+use ggez::{event, Context, GameResult, graphics};
 use std::env;
 use std::path;
 
@@ -89,7 +88,7 @@ impl Clone for Cell {
 }
 
 //Define properties of the game
-struct World { map: Vec<Vec<Option<Cell>>>, generation:i32, living: i32, dead: i32,}
+struct World { map: Vec<Vec<Option<Cell>>>, }
 
 impl World {
 	//Generate a new world given its population
@@ -103,14 +102,12 @@ impl World {
 			locals[x as usize][y as usize] = Some(Cell::new(x, y));
 		}
 
-		World { map: locals, generation:0, living: num_pop, dead: 0,}
+		World { map: locals, }
 	}
 
 	pub fn clasic_generation(&mut self) {
 		//Capture the state of this generation's map
 		let generation: Vec<Vec<Option<Cell>>> = self.map.to_vec();
-		let mut born = 0;
-		let mut died = 0;
 
 		//Evaluate each cell for living neighbors 
 		for (x, row) in generation.iter().enumerate() {
@@ -119,20 +116,16 @@ impl World {
 				//Some = populated, check for population collaps
 				//None = unpopulated, check for population growth
 				match cell {
-					Some(_) => { if live_neighbors < 2 || live_neighbors > 3 { self.map[x][y] = None; died +=1} },
-					None => { if live_neighbors == 3 { self.map[x][y] = Some(Cell::new(x as i32,y as i32)); born += 1;} },
+					Some(_) => { if live_neighbors < 2 || live_neighbors > 3 { self.map[x][y] = None; } },
+					None => { if live_neighbors == 3 { self.map[x][y] = Some(Cell::new(x as i32,y as i32)); } },
 				}
 			}
 		}
-
-		self.generation += 1;
-		self.living += born - died;
-		self.dead += died;
 	}
 
-	fn num_neighbors(map:&Vec<Vec<Option<Cell>>>, x:i32, y:i32) -> i32 {
+	fn num_neighbors(generation:&Vec<Vec<Option<Cell>>>, x:i32, y:i32) -> i32 {
 		let neighbor = |x:i32, y:i32| {
-			match map[x as usize][y as usize] {
+			match generation[x as usize][y as usize] {
 				Some(_) => 1, //Living neighbor
 				None    => 0, //Dead neighbor
 			}
@@ -210,9 +203,9 @@ impl World {
 		Ok(())
 	}
 
-	fn update(&mut self,) -> GameResult<(i32, i32, i32)> {
+	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
 		self.clasic_generation();
-		Ok((self.generation, self.living, self.dead))//Update for game over scenario?
+		Ok(())//Update for game over scenario?
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
@@ -221,119 +214,86 @@ impl World {
 }
 
 struct Frame {
-	coord: Coord,
-	height: i32,
-	width: i32,
-	header: String,
-	text: String,
+	text: graphics::Text,
 }
 
 impl Frame {
-	pub fn new(coord: Coord, height: i32, width: i32, header:String, text: &str, _ctx: &mut Context) -> Self {
-		
+	pub fn new(text: &str, ctx: &mut Context) -> Self {
+		let input = &graphics::Font::new(ctx, "/Pacifico.ttf", 24).expect("missing asset");
 		Frame {
-			coord: coord,
-			height: height,
-			width: width,
-			header: header,
-			text: text.to_string(),
+
+			text: graphics::Text::new(ctx, text, input).expect("missing asset"),
 		}
 	}
 	
 	//@todo
-	fn update(&mut self, text:&str) -> GameResult<()> {
-		self.text = text.to_string();
+	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
 		Ok(())
 	}
 
 	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-		let mut text = self.header.to_string();
-		text.push_str(self.text.as_str());
-		let ttf = &graphics::Font::new(ctx, "/Pacifico.ttf", 24).expect("Missing ttf file");
-		let text = &graphics::Text::new(ctx, text.as_str(), ttf).expect("Error generating text");
 		graphics::set_color(ctx, [0.5, 0.5, 0.5, 1.0].into())?;
-		graphics::draw(ctx, text, graphics::Point2::new((self.coord.x * SIZE_GRID_PIXELS) as f32, (self.coord.y * SIZE_GRID_PIXELS) as f32), 0.0)?;	
+		graphics::draw(ctx, &self.text, graphics::Point2::new((self.coord.x * SIZE_GRID_PIXELS) as f32, (self.coord.y * SIZE_GRID_PIXELS) as f32), 0.0)?;	
 		Ok(())
-	}
-
-	fn contains(&mut self, x:i32, y:i32) -> bool {
-		if x > (self.coord.x * SIZE_GRID_PIXELS) && x < ((self.coord.x + self.width) * SIZE_GRID_PIXELS) {
-			if y > (self.coord.y * SIZE_GRID_PIXELS) && y < ((self.coord.y + self.height) * SIZE_GRID_PIXELS) {
-				return true;
-			}
-		}
-
-		false
 	}
 }
 
-struct UiElem<T> {
+struct Element<'a, T> {
+	ctx: &'a Context,
 	coord: Coord,
 	height: i32,
 	width: i32,
-	header:String,
-	contents: Vec<T>,
+	elem: T,
 }
 
-impl<T> UiElem<T> {
-	pub fn new(coord: Coord, height: i32, width: i32, header:String, contents: Vec<T>) -> Self {
-		UiElem {
+impl<'a, T> Element<'a, T> {
+	pub fn new(coord: Coord, height: i32, width: i32, elem: T, ctx: &'a mut Context)-> Self{
+		Element {
+			ctx: ctx,
 			coord: coord,
 			height: height,
 			width: width,
-			header: header,
-			contents: contents,
+			elem: elem,
 		}
 	}
 }
 
-impl UiElem<Frame> {
-	//@todo
-	fn update(&mut self, text:Option<Vec<String>>) -> GameResult<()> {
-		match text {
-			Some(text) => {
-				for (i, frame) in self.contents.iter_mut().enumerate() {
-					frame.update(text[i].as_str())?;
-				}	
-			},
-			None =>(),
+struct UiElem<'a> {
+	inner: Vec<Element<'a, Frame>>,
+}
+
+impl<'a> UiElem<'a> {
+	pub fn new(inner: Vec<Element<'a, Frame>>) -> Self {
+		UiElem {
+			inner: inner,
 		}
+	}
+	
+	//@todo
+	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
 		Ok(())
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-		// graphics::set_color(ctx, [0.1, 0.1, 0.1, 0.1].into())?; 
+		// graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.5].into())?; 
 		// graphics::rectangle(ctx, graphics::DrawMode::Line(SIZE_GRID_PIXELS as f32), graphics::Rect::new_i32 (
-		// self.coord.x, self.coord.y * SIZE_GRID_PIXELS, 0, (self.height-1)* SIZE_GRID_PIXELS))?;
+		// self.coord.x * SIZE_GRID_PIXELS, self.coord.y * SIZE_GRID_PIXELS, self.width* SIZE_GRID_PIXELS, self.height* SIZE_GRID_PIXELS))?;
 		
-		let ttf = &graphics::Font::new(ctx, "/Pacifico.ttf", 24).expect("Missing ttf file");
-		let text = &graphics::Text::new(ctx, self.header.as_str(), ttf).expect("Error generating text");
-		graphics::set_color(ctx, [0.5, 0.5, 0.5, 1.0].into())?;
-		graphics::draw(ctx, text, graphics::Point2::new((self.coord.x * SIZE_GRID_PIXELS) as f32, (self.coord.y * SIZE_GRID_PIXELS) as f32), 0.0)?;	
-
-		for frame in self.contents.iter() {
-			frame.draw(ctx)?;
+		for frame in self.inner.iter() {
+			//frame.draw(ctx)?;
 		}	
 		Ok(())
 	}
-
-	pub fn mouse_click(&mut self, x:i32, y:i32) {
-		for frame in self.contents.iter_mut() {
-			if frame.contains(x, y) {
-				println!("Clicked {:?}", frame.text);
-			}
-		}
-	}
 }
 
-struct Game {
-	game: World,
-	option: UiElem<Frame>,
-	stat: UiElem<Frame>,
-	player: UiElem<Frame>,
+struct Game<'a, A, B> {
+	game: Element<'a, A>,
+	option: Element<'a, B>,
+	stat: Element<'a, B>,
+	player: Element<'a, B>,
 }
 
-impl Game {
+impl<'a> Game<'a, World, UiElem<'a>> {
 	//@todo
 	// pub fn new(num_pop: i32) -> Self {
 	// 	Game {
@@ -375,47 +335,78 @@ impl Game {
 	// }
 
 	pub fn classic(ctx: &mut Context) -> Self {
-		let mut ofset = 0;
-		let mut offset = || {ofset += 8; return ofset;};
 		Game {
-			game: World::new(2000),
-			option: UiElem::new(
-				//UiElems define where the frames live
+			game: Element::new(
+				Coord::from(POS_GAME_GRIDS), 
+				HEIGHT_GAME_GRIDS,
+				WIDTH_GAME_GRIDS, 
+				World::new(2000), 
+				ctx),
+			option: Element::new(
 				Coord::from(POS_OPTION_GRIDS), 
 				HEIGHT_OPTION_GRIDS, 
-				WIDTH_OPTION_GRIDS - 5, 
-				"Options".to_string(),
-				//Each frame defines where thier content lives witin the uielem
-				vec![],
+				WIDTH_OPTION_GRIDS,
+				UiElem::new(
+					vec![
+						Element::new(
+							Frame::new("Options:", ctx),
+							ctx,
+						),
+						Element::new(
+							Coord::from((POS_OPTION_GRIDS.0+1, POS_OPTION_GRIDS.1+1+5)),
+							HEIGHT_OPTION_GRIDS/4, 
+							WIDTH_OPTION_GRIDS,
+							"Restart",
+							ctx,
+						),
+						Element::new(
+							Coord::from((POS_OPTION_GRIDS.0+1, POS_OPTION_GRIDS.1+1+5+5)),
+							HEIGHT_OPTION_GRIDS/4, 
+							WIDTH_OPTION_GRIDS,
+							"Pause",
+							ctx,
+						),
+						Element::new(
+							Coord::from((POS_OPTION_GRIDS.0+1, POS_OPTION_GRIDS.1+1+5+5+5)),
+							HEIGHT_OPTION_GRIDS/4, 
+							WIDTH_OPTION_GRIDS,
+							"Exit",
+							ctx,
+						),
+					],
+				),
 			),
 			stat: UiElem::new(
 				Coord::from(POS_STAT_GRIDS), 
 				HEIGHT_STAT_GRIDS, 
-				WIDTH_STAT_GRIDS  - 5,
-				"Stats".to_string(),
+				WIDTH_STAT_GRIDS, 
 				vec![
-					Frame::new(
-						Coord::from((POS_STAT_GRIDS.0 + 5, POS_STAT_GRIDS.1 + offset())),
-						5, 
-						WIDTH_STAT_GRIDS - 5,
-						"Generation : ".to_string(),
-						"",
+					Element::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Stats",
 						ctx,
 					),
-					Frame::new(
-						Coord::from((POS_STAT_GRIDS.0 + 5, POS_STAT_GRIDS.1 + offset())),
-						5, 
-						WIDTH_STAT_GRIDS - 5,
-						"Living         : ".to_string(),
-						"",
+					Element::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1+5)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Generations",
 						ctx,
 					),
-					Frame::new(
-						Coord::from((POS_STAT_GRIDS.0 + 5, POS_STAT_GRIDS.1 + offset())),
-						5, 
-						WIDTH_STAT_GRIDS - 5,
-						"Fatalities   : ".to_string(),
-						"",
+					Element::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1+5+5)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Living",
+						ctx,
+					),
+					Element::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1+5+5+5)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Fatalities",
 						ctx,
 					),
 				],
@@ -423,33 +414,29 @@ impl Game {
 			player: UiElem::new(
 				Coord::from(POS_PLAYER_GRIDS), 
 				HEIGHT_PLAYER_GRIDS, 
-				WIDTH_PLAYER_GRIDS - 5,
-				"Add life".to_string(), 
-				vec![],
+				WIDTH_PLAYER_GRIDS, 
+				vec![Frame::new(
+					Coord::from((POS_PLAYER_GRIDS.0+1, POS_PLAYER_GRIDS.1+1)),
+					HEIGHT_PLAYER_GRIDS, 
+					WIDTH_PLAYER_GRIDS,
+					"Add life:",
+					ctx,
+				)],
 			),
 		}
 	}
 }
 
-impl event::EventHandler for Game{
+impl<'a, A, B> event::EventHandler for Game<'a, A, B>{
 //https://docs.rs/ggez/0.3.1/ggez/event/trait.EventHandler.html
 //Must override at least update() and draw() methods
-	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-		match self.game.update() {
-			Ok(generation) => {
-				//let header = self.stat.contents[0].text.to_string();
-				self.stat.update(Some(vec![
-					generation.0.to_string(),
-                    generation.1.to_string(),
-                    generation.2.to_string()
-                ]))?;
-			},
-			_ => (),
-		}
-		self.option.update(None)?;
-		
-		self.player.update(None)?;
-		Ok(())//Update for game-over scenario?
+
+	fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+		self.game.update(ctx)?;
+		self.option.update(ctx)?;
+		self.stat.update(ctx)?;
+		self.player.update(ctx)?;
+		Ok(())//Update for game over scenario?
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
@@ -460,15 +447,6 @@ impl event::EventHandler for Game{
 		self.player.draw(ctx)?;
 		graphics::present(ctx);
 		Ok(())
-	}
-
-
-	fn mouse_button_up_event(&mut self, _ctx: &mut Context, _button: MouseButton, x: i32, y: i32){
-	//https://docs.rs/ggez/0.4.3/ggez/event/trait.EventHandler.html#method.mouse_button_up_event
-		//println!("Clicked: {}, {}", x, y);
-		self.option.mouse_click(x, y);
-		self.stat.mouse_click(x, y);
-		self.player.mouse_click(x, y);
 	}
 }
 
