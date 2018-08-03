@@ -2,6 +2,8 @@ extern crate rand;
 extern crate ggez;
 use rand::Rng;
 use ggez::{event, Context, GameResult, graphics};
+use std::env;
+use std::path;
 
 //.ceil()
 //Size of grids in pixels
@@ -11,8 +13,8 @@ const SIZE_GRID_PIXELS: i32 = 5;
 const WIDTH_WINDOW_GRIDS:i32 = 150;
 const HEIGHT_WINDOW_GRIDS:i32 = 150;
 const AREA_WINDOW_PIXELS: (i32, i32) = (WIDTH_WINDOW_GRIDS * SIZE_GRID_PIXELS, HEIGHT_WINDOW_GRIDS * SIZE_GRID_PIXELS);
-//------------------------|-----|
-//|game (0,0)             |stats|
+//|-----------------------|-----|
+//|game                   |stats|
 //|                       |     |
 //|                       |     |
 //|-----------------------|-----|
@@ -21,22 +23,29 @@ const AREA_WINDOW_PIXELS: (i32, i32) = (WIDTH_WINDOW_GRIDS * SIZE_GRID_PIXELS, H
 //game_frame
 const WIDTH_GAME_GRIDS:i32 = WIDTH_WINDOW_GRIDS - 50;
 const HEIGHT_GAME_GRIDS:i32 = HEIGHT_WINDOW_GRIDS - 50;
-const AREA_GAME_PIXELS: (i32, i32) = (WIDTH_GAME_GRIDS * SIZE_GRID_PIXELS, HEIGHT_GAME_GRIDS * SIZE_GRID_PIXELS);
+//const AREA_GAME_PIXELS: (i32, i32) = (WIDTH_GAME_GRIDS * SIZE_GRID_PIXELS, HEIGHT_GAME_GRIDS * SIZE_GRID_PIXELS);
 
 //stat_frame
 const WIDTH_STAT_GRIDS:i32 = WIDTH_WINDOW_GRIDS - WIDTH_GAME_GRIDS;
 const HEIGHT_STAT_GRIDS:i32 = HEIGHT_WINDOW_GRIDS - 50;
-const AREA_STAT_PIXELS: (i32, i32) = (WIDTH_STAT_GRIDS * SIZE_GRID_PIXELS, HEIGHT_STAT_GRIDS * SIZE_GRID_PIXELS);
+//const AREA_STAT_PIXELS: (i32, i32) = (WIDTH_STAT_GRIDS * SIZE_GRID_PIXELS, HEIGHT_STAT_GRIDS * SIZE_GRID_PIXELS);
 
 //player_frame
 const WIDTH_PLAYER_GRIDS:i32 = WIDTH_GAME_GRIDS;
 const HEIGHT_PLAYER_GRIDS:i32 = HEIGHT_WINDOW_GRIDS - HEIGHT_GAME_GRIDS;
-const AREA_PLAYER_PIXELS: (i32, i32) = (WIDTH_PLAYER_GRIDS * SIZE_GRID_PIXELS, HEIGHT_PLAYER_GRIDS * SIZE_GRID_PIXELS);
+//const AREA_PLAYER_PIXELS: (i32, i32) = (WIDTH_PLAYER_GRIDS * SIZE_GRID_PIXELS, HEIGHT_PLAYER_GRIDS * SIZE_GRID_PIXELS);
 
 //option_frame
 const WIDTH_OPTION_GRIDS:i32 = WIDTH_WINDOW_GRIDS-WIDTH_PLAYER_GRIDS;
 const HEIGHT_OPTION_GRIDS:i32 = HEIGHT_WINDOW_GRIDS - HEIGHT_STAT_GRIDS;
-const AREA_OPTION_PIXELS: (i32, i32) = (WIDTH_OPTION_GRIDS * SIZE_GRID_PIXELS, HEIGHT_OPTION_GRIDS * SIZE_GRID_PIXELS);
+//const AREA_OPTION_PIXELS: (i32, i32) = (WIDTH_OPTION_GRIDS * SIZE_GRID_PIXELS, HEIGHT_OPTION_GRIDS * SIZE_GRID_PIXELS);
+
+//Set default coordinates of window elements
+//Position is the center of the element
+const POS_GAME_GRIDS: (i32, i32) = (0,0);
+const POS_STAT_GRIDS: (i32, i32) = (POS_GAME_GRIDS.0 + (WIDTH_GAME_GRIDS), POS_GAME_GRIDS.1);
+const POS_PLAYER_GRIDS: (i32, i32) = (POS_GAME_GRIDS.0, POS_GAME_GRIDS.1 + (HEIGHT_GAME_GRIDS));
+const POS_OPTION_GRIDS: (i32, i32) = (POS_STAT_GRIDS.0, POS_PLAYER_GRIDS.1);
 
 //Coordinates in the program window
 struct Coord { x: i32, y: i32, }
@@ -55,14 +64,6 @@ impl Clone for Coord {
 	fn clone(&self) -> Coord { Coord::new(self.x, self.y) }
 }
 
-//Set default coordinates of window elements
-const POS_GAME_GRIDS: (i32, i32) = (0, 0);
-const POS_STAT_GRIDS: (i32, i32) = (WIDTH_GAME_GRIDS + 1, HEIGHT_GAME_GRIDS);
-const POS_PLAYER_GRIDS: (i32, i32) = (0, (HEIGHT_WINDOW_GRIDS - HEIGHT_GAME_GRIDS) + 1);
-const POS_OPTION_GRIDS: (i32, i32) = (WIDTH_GAME_GRIDS + 1, HEIGHT_STAT_GRIDS + 1);
-
-
-
 //Coordinates for ggez to draw Coords
 struct Cell { coord: Coord, }
 
@@ -76,7 +77,7 @@ impl Cell {
 	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
 		let boarder = 1;
 		graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.5].into())?; 
-		graphics::rectangle(ctx, graphics::DrawMode::Fill, graphics::Rect::new_i32 (
+		graphics::rectangle(ctx, graphics::DrawMode::Fill, graphics::Rect::new_i32 (//(x: f32, y: f32, w: f32, h: f32)
 		self.coord.x * SIZE_GRID_PIXELS, self.coord.y * SIZE_GRID_PIXELS, SIZE_GRID_PIXELS-boarder, SIZE_GRID_PIXELS-boarder,))?;		
 		Ok(())
 	}
@@ -201,11 +202,6 @@ impl World {
 		}
 		Ok(())
 	}
-}
-
-impl event::EventHandler for World{
-//https://docs.rs/ggez/0.3.1/ggez/event/trait.EventHandler.html
-//Must override at least update() and draw() methods
 
 	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
 		self.clasic_generation();
@@ -213,80 +209,136 @@ impl event::EventHandler for World{
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-		//graphics::clear(ctx);
-		self.draw_all_living(ctx)?;
-		//graphics::present(ctx);
-		Ok(())
+		self.draw_all_living(ctx)
 	}
 }
 
 struct Frame {
-	pos: Coord,
+	coord: Coord,
 	height: i32,
 	width: i32,
-	text: String,
+	text: graphics::Text,
 }
 
 impl Frame {
-	pub fn new(coord: Coord, height: i32, width: i32, text: &str) -> Self {
+	pub fn new(coord: Coord, height: i32, width: i32, text: &str, ctx: &mut Context) -> Self {
+		let input = &graphics::Font::new(ctx, "/Pacifico.ttf", 24).expect("missing asset");
 		Frame {
-			pos: coord,
+			coord: coord,
 			height: height,
 			width: width,
-			text: text.to_string(),
+			text: graphics::Text::new(ctx, text, input).expect("missing asset"),
 		}
+	}
+	
+	//@todo
+	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
+		Ok(())
+	}
+
+	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
+		graphics::draw(ctx, &self.text, graphics::Point2::new((self.coord.x * SIZE_GRID_PIXELS) as f32, (self.coord.y * SIZE_GRID_PIXELS) as f32), 0.0)?;	
+		Ok(())
 	}
 }
 
-struct UI_Elem {
-	pos: Coord,
+struct UiElem {
+	coord: Coord,
 	height: i32,
 	width: i32,
 	inner: Vec<Frame>,
 }
 
-impl UI_Elem {
+impl UiElem {
 	pub fn new(coord: Coord, height: i32, width: i32, inner: Vec<Frame>) -> Self {
-		UI_Elem {
-			pos: coord,
+		UiElem {
+			coord: coord,
 			height: height,
 			width: width,
 			inner: inner,
 		}
 	}
+	
+	//@todo
+	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
+		Ok(())
+	}
+
+	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+		graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.5].into())?; 
+		graphics::rectangle(ctx, graphics::DrawMode::Line(SIZE_GRID_PIXELS as f32), graphics::Rect::new_i32 (
+		self.coord.x * SIZE_GRID_PIXELS, self.coord.y * SIZE_GRID_PIXELS, self.width* SIZE_GRID_PIXELS, self.height* SIZE_GRID_PIXELS))?;
+		
+		for frame in self.inner.iter() {
+			frame.draw(ctx)?;
+		}	
+		Ok(())
+	}
 }
 
-struct Game_Elem {
-	pos: Coord,
-	height: i32,
-	width: i32,
+struct GameElem {
 	instance: World,
-
 }
 
-impl Game_Elem {
+impl GameElem {
 	pub fn new(num_pop: i32) -> Self {
-		Game_Elem {
-			pos: Coord::from(POS_GAME_GRIDS),
-			height: HEIGHT_GAME_GRIDS,
-			width: WIDTH_GAME_GRIDS,
+		GameElem {
 			instance: World::new(num_pop),
 		}
 	}
 }
 
 struct Game {
-	game: Game_Elem,
-	option: UI_Elem,
-	stat: UI_Elem,
-	player: UI_Elem,
+	game: GameElem,
+	option: UiElem,
+	stat: UiElem,
+	player: UiElem,
 }
 
 impl Game {
-	pub fn new(num_pop: i32) -> Self {
+	// pub fn new(num_pop: i32) -> Self {
+	// 	Game {
+	// 		game: GameElem::new(num_pop),
+	// 		option: UiElem::new(
+	// 			Coord::from(POS_OPTION_GRIDS), 
+	// 			HEIGHT_OPTION_GRIDS, 
+	// 			WIDTH_OPTION_GRIDS, 
+	// 			vec![Frame::new(
+	// 				Coord::from(POS_OPTION_GRIDS),
+	// 				HEIGHT_OPTION_GRIDS, 
+	// 				WIDTH_OPTION_GRIDS,
+	// 				"Options:",
+	// 			)],
+	// 		),//(coord: Coord, height: i32, width: i32, inner: Vec<Frame>)
+	// 		stat: UiElem::new(
+	// 			Coord::from(POS_STAT_GRIDS), 
+	// 			HEIGHT_STAT_GRIDS, 
+	// 			WIDTH_STAT_GRIDS, 
+	// 			vec![Frame::new(
+	// 				Coord::from(POS_STAT_GRIDS),
+	// 				HEIGHT_STAT_GRIDS, 
+	// 				WIDTH_STAT_GRIDS,
+	// 				"Stats:",
+	// 			)],
+	// 		),
+	// 		player: UiElem::new(
+	// 			Coord::from(POS_PLAYER_GRIDS), 
+	// 			HEIGHT_PLAYER_GRIDS, 
+	// 			WIDTH_PLAYER_GRIDS, 
+	// 			vec![Frame::new(
+	// 				Coord::from(POS_PLAYER_GRIDS),
+	// 				HEIGHT_PLAYER_GRIDS, 
+	// 				WIDTH_PLAYER_GRIDS,
+	// 				"Player:",
+	// 			)],
+	// 		),
+	// 	}
+	// }
+
+	pub fn classic(ctx: &mut Context) -> Self {
 		Game {
-			game: Game_Elem::new(num_pop),
-			option: UI_Elem::new(
+			game: GameElem::new(2500),
+			option: UiElem::new(
 				Coord::from(POS_OPTION_GRIDS), 
 				HEIGHT_OPTION_GRIDS, 
 				WIDTH_OPTION_GRIDS, 
@@ -295,9 +347,10 @@ impl Game {
 					HEIGHT_OPTION_GRIDS, 
 					WIDTH_OPTION_GRIDS,
 					"Options:",
+					ctx,
 				)],
-			),//(coord: Coord, height: i32, width: i32, inner: Vec<Frame>)
-			stat: UI_Elem::new(
+			),
+			stat: UiElem::new(
 				Coord::from(POS_STAT_GRIDS), 
 				HEIGHT_STAT_GRIDS, 
 				WIDTH_STAT_GRIDS, 
@@ -306,9 +359,10 @@ impl Game {
 					HEIGHT_STAT_GRIDS, 
 					WIDTH_STAT_GRIDS,
 					"Stats:",
+					ctx,
 				)],
 			),
-			player: UI_Elem::new(
+			player: UiElem::new(
 				Coord::from(POS_PLAYER_GRIDS), 
 				HEIGHT_PLAYER_GRIDS, 
 				WIDTH_PLAYER_GRIDS, 
@@ -317,17 +371,9 @@ impl Game {
 					HEIGHT_PLAYER_GRIDS, 
 					WIDTH_PLAYER_GRIDS,
 					"Player:",
+					ctx,
 				)],
 			),
-		}
-	}
-
-	pub fn basic() -> Self {
-		Game {
-			game: Game_Elem::new(2500),
-			option: UI_Elem::new(Coord::from(POS_OPTION_GRIDS), HEIGHT_OPTION_GRIDS, WIDTH_OPTION_GRIDS, vec![]),//(coord: Coord, height: i32, width: i32, inner: Vec<Frame>)
-			stat: UI_Elem::new(Coord::from(POS_STAT_GRIDS), HEIGHT_STAT_GRIDS, WIDTH_STAT_GRIDS, vec![]),
-			player: UI_Elem::new(Coord::from(POS_PLAYER_GRIDS), HEIGHT_PLAYER_GRIDS, WIDTH_PLAYER_GRIDS, vec![]),
 		}
 	}
 }
@@ -338,12 +384,18 @@ impl event::EventHandler for Game{
 
 	fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
 		self.game.instance.update(ctx)?;
+		self.option.update(ctx)?;
+		self.stat.update(ctx)?;
+		self.player.update(ctx)?;
 		Ok(())//Update for game over scenario?
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
 		graphics::clear(ctx);
 		self.game.instance.draw(ctx)?;
+		self.option.draw(ctx)?;
+		self.stat.draw(ctx)?;
+		self.player.draw(ctx)?;
 		graphics::present(ctx);
 		Ok(())
 	}
@@ -352,23 +404,32 @@ impl event::EventHandler for Game{
 fn main() {
 	//get user input/args
 
+	//Check cargo manifest directory for external .ttf files
+    if let Ok(cargo_manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        let mut path_buffer = path::PathBuf::from(cargo_manifest_dir);
+        path_buffer.push("ttf");
 
-	//Build game context
-    let program = &mut ggez::ContextBuilder::new("Game of Life", "Matthew Greenlaw")//https://docs.rs/ggez/0.4.1/ggez/struct.ContextBuilder.html
+        //Build program
+        let program = &mut ggez::ContextBuilder::new("Game of Life", "Matthew Greenlaw")
+        //https://docs.rs/ggez/0.4.1/ggez/struct.ContextBuilder.html
     	.window_setup(ggez::conf::WindowSetup::default().title("Game of Life"))
     	.window_mode(ggez::conf::WindowMode::default().dimensions(AREA_WINDOW_PIXELS.0 as u32, AREA_WINDOW_PIXELS.1 as u32))
+    	.add_resource_path(path_buffer)
     	.build().expect("Failed to build game.");
 
-    graphics::set_background_color(program, [1.0, 1.0, 1.0, 1.0].into());
+    	graphics::set_background_color(program, [1.0, 1.0, 1.0, 1.0].into());
 
-    //Build the world
-    //let life = &mut World::new(2500);//@todo: Need to be able to adjust this with cmd line input, etc
+    	//Build the game
+	    let game = &mut Game::classic(program); 
 
-    let game = &mut Game::basic(); 
-
-    //Run the main game loop
-    match event::run(program, game){//https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
-    	Ok(_) => println!("Exited..."),
-    	Err(error) => println!("Error: {:?}", error),
+	    //Run the main game loop
+	    match event::run(program, game){
+	    //https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
+	    	Ok(_) => println!("Exited..."),
+	    	Err(error) => println!("Error: {:?}", error),
+	    }
+    }
+    else {
+        panic!("Usage: cargo run");
     }
 }

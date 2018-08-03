@@ -14,11 +14,15 @@ This repository contains my final project for CS 410: Rust Programming at Portla
 
 2. [ ] Benchmark 2: Add UI
    1. [x] Create basic UI elements
+      * [x] Import and display ttf
       * [x] Game Map element
-      * [ ] Stats element
-      * [ ] Insertion element
-      * [ ] Options element
-   2. [ ] Setup ggez to work with UI elements
+      * [x] Stats element
+      * [x] Player interaction element
+      * [x] Options element
+   2. [ ] UI element functionality
+      * [ ]  Update stat area with game statistics
+      * [ ]  User interaction with player area
+      * [ ]  User interaction with stat area
 
 # Installation Instructions
 ## Windows 10 installation
