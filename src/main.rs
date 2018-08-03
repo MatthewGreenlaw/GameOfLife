@@ -237,6 +237,7 @@ impl Frame {
 	}
 
 	fn draw(&self, ctx: &mut Context) -> GameResult<()> {
+		graphics::set_color(ctx, [0.5, 0.5, 0.5, 1.0].into())?;
 		graphics::draw(ctx, &self.text, graphics::Point2::new((self.coord.x * SIZE_GRID_PIXELS) as f32, (self.coord.y * SIZE_GRID_PIXELS) as f32), 0.0)?;	
 		Ok(())
 	}
@@ -265,9 +266,9 @@ impl UiElem {
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-		graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.5].into())?; 
-		graphics::rectangle(ctx, graphics::DrawMode::Line(SIZE_GRID_PIXELS as f32), graphics::Rect::new_i32 (
-		self.coord.x * SIZE_GRID_PIXELS, self.coord.y * SIZE_GRID_PIXELS, self.width* SIZE_GRID_PIXELS, self.height* SIZE_GRID_PIXELS))?;
+		// graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.5].into())?; 
+		// graphics::rectangle(ctx, graphics::DrawMode::Line(SIZE_GRID_PIXELS as f32), graphics::Rect::new_i32 (
+		// self.coord.x * SIZE_GRID_PIXELS, self.coord.y * SIZE_GRID_PIXELS, self.width* SIZE_GRID_PIXELS, self.height* SIZE_GRID_PIXELS))?;
 		
 		for frame in self.inner.iter() {
 			frame.draw(ctx)?;
@@ -276,26 +277,15 @@ impl UiElem {
 	}
 }
 
-struct GameElem {
-	instance: World,
-}
-
-impl GameElem {
-	pub fn new(num_pop: i32) -> Self {
-		GameElem {
-			instance: World::new(num_pop),
-		}
-	}
-}
-
 struct Game {
-	game: GameElem,
+	game: World,
 	option: UiElem,
 	stat: UiElem,
 	player: UiElem,
 }
 
 impl Game {
+	//@todo
 	// pub fn new(num_pop: i32) -> Self {
 	// 	Game {
 	// 		game: GameElem::new(num_pop),
@@ -337,40 +327,86 @@ impl Game {
 
 	pub fn classic(ctx: &mut Context) -> Self {
 		Game {
-			game: GameElem::new(2500),
+			game: World::new(2000),
 			option: UiElem::new(
 				Coord::from(POS_OPTION_GRIDS), 
 				HEIGHT_OPTION_GRIDS, 
 				WIDTH_OPTION_GRIDS, 
-				vec![Frame::new(
-					Coord::from(POS_OPTION_GRIDS),
-					HEIGHT_OPTION_GRIDS, 
-					WIDTH_OPTION_GRIDS,
-					"Options:",
-					ctx,
-				)],
+				vec![
+					Frame::new(
+						Coord::from((POS_OPTION_GRIDS.0+1, POS_OPTION_GRIDS.1+1)),
+						HEIGHT_OPTION_GRIDS/4, 
+						WIDTH_OPTION_GRIDS,
+						"Options:",
+						ctx,
+					),
+					Frame::new(
+						Coord::from((POS_OPTION_GRIDS.0+1, POS_OPTION_GRIDS.1+1+5)),
+						HEIGHT_OPTION_GRIDS/4, 
+						WIDTH_OPTION_GRIDS,
+						"Restart",
+						ctx,
+					),
+					Frame::new(
+						Coord::from((POS_OPTION_GRIDS.0+1, POS_OPTION_GRIDS.1+1+5+5)),
+						HEIGHT_OPTION_GRIDS/4, 
+						WIDTH_OPTION_GRIDS,
+						"Pause",
+						ctx,
+					),
+					Frame::new(
+						Coord::from((POS_OPTION_GRIDS.0+1, POS_OPTION_GRIDS.1+1+5+5+5)),
+						HEIGHT_OPTION_GRIDS/4, 
+						WIDTH_OPTION_GRIDS,
+						"Exit",
+						ctx,
+					),
+				],
 			),
 			stat: UiElem::new(
 				Coord::from(POS_STAT_GRIDS), 
 				HEIGHT_STAT_GRIDS, 
 				WIDTH_STAT_GRIDS, 
-				vec![Frame::new(
-					Coord::from(POS_STAT_GRIDS),
-					HEIGHT_STAT_GRIDS, 
-					WIDTH_STAT_GRIDS,
-					"Stats:",
-					ctx,
-				)],
+				vec![
+					Frame::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Stats",
+						ctx,
+					),
+					Frame::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1+5)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Generations",
+						ctx,
+					),
+					Frame::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1+5+5)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Living",
+						ctx,
+					),
+					Frame::new(
+						Coord::from((POS_STAT_GRIDS.0+1, POS_STAT_GRIDS.1+1+5+5+5)),
+						HEIGHT_STAT_GRIDS/4, 
+						WIDTH_STAT_GRIDS,
+						"Fatalities",
+						ctx,
+					),
+				],
 			),
 			player: UiElem::new(
 				Coord::from(POS_PLAYER_GRIDS), 
 				HEIGHT_PLAYER_GRIDS, 
 				WIDTH_PLAYER_GRIDS, 
 				vec![Frame::new(
-					Coord::from(POS_PLAYER_GRIDS),
+					Coord::from((POS_PLAYER_GRIDS.0+1, POS_PLAYER_GRIDS.1+1)),
 					HEIGHT_PLAYER_GRIDS, 
 					WIDTH_PLAYER_GRIDS,
-					"Player:",
+					"Add life:",
 					ctx,
 				)],
 			),
@@ -383,7 +419,7 @@ impl event::EventHandler for Game{
 //Must override at least update() and draw() methods
 
 	fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-		self.game.instance.update(ctx)?;
+		self.game.update(ctx)?;
 		self.option.update(ctx)?;
 		self.stat.update(ctx)?;
 		self.player.update(ctx)?;
@@ -392,7 +428,7 @@ impl event::EventHandler for Game{
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
 		graphics::clear(ctx);
-		self.game.instance.draw(ctx)?;
+		self.game.draw(ctx)?;
 		self.option.draw(ctx)?;
 		self.stat.draw(ctx)?;
 		self.player.draw(ctx)?;
@@ -402,6 +438,7 @@ impl event::EventHandler for Game{
 }
 
 fn main() {
+	//@todo
 	//get user input/args
 
 	//Check cargo manifest directory for external .ttf files
