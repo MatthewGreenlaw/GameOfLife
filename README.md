@@ -26,8 +26,8 @@ This repository contains my final project for CS 410: Rust Programming at Portla
       * [x] Update stat area with game statistics
       * [ ] Add basic option menu
 2. [ ] Benchmark 3: User input and Advanced settings      
-   1. [x] Add interaction menu to add life
-   2. [x] Add advanced settings (IE. Play non-standard rules)
+   1. [ ] Add interaction menu to add life
+   2. [ ] Add advanced settings (IE. Play non-standard rules)
 
 # Installation Instructions
 ## Windows 10 installation
