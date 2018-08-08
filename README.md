@@ -12,7 +12,7 @@ This repository contains my final project for CS 410: Rust Programming at Portla
       * [x] [run](https://docs.rs/ggez/0.3.1/ggez/event/fn.run.html)
    3. [x] Implement the clasic Game of Life [rules](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules)
 
-2. [x] [Stage 2](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/Stage-1): Add UI
+2. [x] [Stage 2](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/Stage-2): Add UI
    1. [x] Create basic UI elements
       * [x] Import and display ttf
       * [x] Game Map element
