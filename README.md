@@ -33,7 +33,7 @@ The Game of Life can be as complex as you want it to be and there are a lot of i
       * [x] [run](https://docs.rs/ggez/0.3.1/ggez/event/fn.run.html)
    3. [x] Implement the classic Game of Life [rules](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules)
 
-<img src="screenshots/Stage1.png"
+<img src="screenshots/Stage-1.gif"
      alt="Stage-1"
      style="float: left; margin-right: 10px; max-width: 3200px;" />
 
@@ -54,7 +54,7 @@ The Game of Life can be as complex as you want it to be and there are a lot of i
          * [x] Implement user interaction for menu
          * [x] Update options upon user interaction
 
-<img src="screenshots/Stage2.png"
+<img src="screenshots/Stage-2.gif"
      alt="Stage-2"
      style="float: left; margin-right: 10px; max-width: 320px;" />
 
