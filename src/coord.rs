@@ -1,11 +1,18 @@
-extern crate ggez;
-use ggez::{Context, GameResult, graphics};
+// Copyright 2016 Matthew Greenlaw.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-use params::{
-	SIZE_GRID_PIXELS
-};
-
-//Coordinates in the program window
+///Define coordinates
 pub struct Coord { x: i32, y: i32, }
 
 impl Coord {
@@ -19,16 +26,6 @@ impl Coord {
 
 	pub fn get_coords(&self) -> (i32, i32) {
 		(self.x, self.y)
-	}
-
-	//Tell ggez what color to render a Cell
-	//https://docs.rs/ggez/0.3.1/ggez/graphics/index.html
-	pub fn draw(&self, ctx: &mut Context) -> GameResult<()> {
-		let boarder = 1;
-		graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.5].into())?; 
-		graphics::rectangle(ctx, graphics::DrawMode::Fill, graphics::Rect::new_i32 (//(x: f32, y: f32, w: f32, h: f32)
-		self.x * SIZE_GRID_PIXELS, self.y * SIZE_GRID_PIXELS, SIZE_GRID_PIXELS-boarder, SIZE_GRID_PIXELS-boarder,))?;		
-		Ok(())
 	}
 }
 

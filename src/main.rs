@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
+//Import graphics crate
 extern crate ggez;
-
 use ggez::event::{self, MouseButton};
 use ggez::{Context, GameResult, graphics};
+
 use std::env;
 use std::path;
 
@@ -33,6 +33,7 @@ use params::{
 mod gol;
 use gol::{World};
 
+//Import user interface managment
 mod coord;
 mod ui;
 use ui::{UiElem, Frame};
@@ -45,7 +46,7 @@ struct Game {
 }
 
 impl Game {
-	pub fn classic(ctx: &mut Context) -> Self {
+	pub fn classic() -> Self {
 		let x_offset = |x| { x * WIDTH_INDENT };
 		let y_offset = |x| { x * HEIGHT_UI_LINE };
 
@@ -63,7 +64,6 @@ impl Game {
 					y_offset(1), 
 					"Generation : ".to_string(),
 					"",
-					ctx,
 				),
 				Frame::new(
 					POS_STAT_GRIDS,
@@ -73,7 +73,6 @@ impl Game {
 					y_offset(2), 
 					"Living         : ".to_string(),
 					"",
-					ctx,
 				),
 				Frame::new(
 					POS_STAT_GRIDS,
@@ -83,7 +82,6 @@ impl Game {
 					y_offset(3), 
 					"Fatalities   : ".to_string(),
 					"",
-					ctx,
 				),
 			],
 		);
@@ -104,7 +102,6 @@ impl Game {
 					y_offset(1), 
 					"Pause".to_string(),
 					"",
-					ctx,
 				),
 				Frame::new(
 					POS_OPTION_GRIDS,
@@ -114,7 +111,6 @@ impl Game {
 					y_offset(2), 
 					"Restart".to_string(),
 					"",
-					ctx,
 				),
 				Frame::new(
 					POS_OPTION_GRIDS,
@@ -124,7 +120,6 @@ impl Game {
 					y_offset(3), 
 					"Advanced Options".to_string(),
 					"",
-					ctx,
 				),
 			],
 		);
@@ -151,29 +146,25 @@ impl event::EventHandler for Game{
 //https://docs.rs/ggez/0.3.1/ggez/event/trait.EventHandler.html
 //Must override at least update() and draw() methods
 	fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-		match self.game.update() {
-			Ok(generation) => {
-				//let header = self.stat.contents[0].text.to_string();
-				self.stat.update(Some(vec![
-					generation.0.to_string(),
-                    generation.1.to_string(),
-                    generation.2.to_string()
-                ]))?;
-			},
-			_ => (),
-		}
-		self.option.update(None)?;
+		let generation = self.game.update();
+		self.stat.update(Some(vec![
+			generation.0.to_string(),
+            generation.1.to_string(),
+            generation.2.to_string()
+        ]));
+
+		self.option.update(None);
 		
-		self.player.update(None)?;
+		self.player.update(None);
 		Ok(())//Update for game-over scenario?
 	}
 
 	fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
 		graphics::clear(ctx);
-		self.game.draw(ctx)?;
-		self.option.draw(ctx)?;
-		self.stat.draw(ctx)?;
-		self.player.draw(ctx)?;
+		self.game.draw(ctx);
+		self.option.draw(ctx);
+		self.stat.draw(ctx);
+		self.player.draw(ctx);
 		graphics::present(ctx);
 		Ok(())
 	}
@@ -208,12 +199,12 @@ fn main() {
     	graphics::set_background_color(program, [1.0, 1.0, 1.0, 1.0].into());
 
     	//Build the game
-	    let game = &mut Game::classic(program); 
+	    let game = &mut Game::classic(); 
 
 	    //Run the main game loop
 	    match event::run(program, game){
 	    //https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
-	    	Ok(_) => println!("Exited..."),
+	    	Ok(_) => println!("Copyright 2016 Matthew Greenlaw. Download from: https://github.com/MatthewGreenlaw/GameOfLife"),
 	    	Err(error) => println!("Error: {:?}", error),
 	    }
     }
