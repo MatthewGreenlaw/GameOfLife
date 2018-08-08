@@ -48,7 +48,7 @@ impl World {
 	/// * 'num_pop' - The initial population. Each population is located randomly.
 	pub fn new (num_pop: i32) -> Self {
 		let mut range = rand::thread_rng();
-		let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];	
+		let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];  
 
 		for _i in 0..num_pop {
 			let x = range.gen_range::<i32>(0, WIDTH_GAME_GRIDS as i32);
@@ -112,7 +112,7 @@ impl World {
 		let right  = |a:i32, b:i32| neighbor(a+1, b  );
 		let bleft  = |a:i32, b:i32| neighbor(a-1, b+1);
 		let bottom = |a:i32, b:i32| neighbor(a  , b+1);
-		let bright = |a:i32, b:i32| neighbor(a+1, b+1);		
+		let bright = |a:i32, b:i32| neighbor(a+1, b+1);   
 
 		// t n
 		// n n
@@ -184,7 +184,7 @@ impl World {
 	pub fn draw(&mut self, ctx: &mut Context) {
 		let topix = |x:i32| { ((x * SIZE_GRID_PIXELS) as i32) };
 		let boarder = 1;
-		
+
 		//Loop over cells in the map
 		for row in self.map.iter() {
 			for life in row.iter() {
@@ -192,17 +192,19 @@ impl World {
 				match life {
 					Some(cell) => {
 						let coord = cell.get_coords();
-						graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.5].into()).expect("Error setting color"); 
+						//set_color(r: f32, g: f32, b: f32 a: f32)
+						graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.9].into()).expect("Error setting color"); 
 						graphics::rectangle(ctx, 
-							graphics::DrawMode::Fill, 
-							graphics::Rect::new_i32 (//(x: f32, y: f32, w: f32, h: f32)
+							graphics::DrawMode::Fill,
+							//Rect(x: f32, y: f32, w: f32, h: f32)
+							graphics::Rect::new_i32 (
 								topix(coord.0), 
 								topix(coord.1), 
 								topix(1)-boarder, 
 								topix(1)-boarder,
 							)
 						).expect("Error drawing Rect");
-					},//cell.draw_grid(ctx),
+					},
 					None => (),
 				}
 			}

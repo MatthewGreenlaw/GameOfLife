@@ -77,7 +77,7 @@ impl Frame {
 
 		//Draw the text
 		graphics::set_color(ctx, [0.5, 0.5, 0.5, 1.0].into()).expect("Error setting color");
-		graphics::draw(ctx, text, graphics::Point2::new(topix(coords.0), topix(coords.1)), 0.0).expect("Error drawing text");	
+		graphics::draw(ctx, text, graphics::Point2::new(topix(coords.0), topix(coords.1)), 0.0).expect("Error drawing text"); 
 	}
 
 	/// Determines if this element covers an area of coordinates that contain a target coordinate.
@@ -101,8 +101,10 @@ impl Frame {
 	}
 
 	///Action to perform if user clicks a coordinate in this element.
-	pub fn mouse_click(&mut self) {
-		println!("Clicked: {}", self.header);
+	pub fn mouse_click(&mut self) -> &str {
+		if &self.header == "Pause" { self.header = "Start".to_string(); return "Pause"};
+		if &self.header == "Start" { self.header = "Pause".to_string(); return "Start"};
+		&self.header
 	}
 }
 
@@ -150,7 +152,7 @@ impl UiElem<Frame> {
 				//For each of the children, update it with the corasponding string. Order is important.
 				for (i, frame) in self.children.iter_mut().enumerate() {
 					frame.update(text[i].as_str());
-				}	
+				} 
 			},
 			None =>(),
 		}
@@ -168,7 +170,7 @@ impl UiElem<Frame> {
 		let ttf = &graphics::Font::new(ctx, "/Pacifico.ttf", 24).expect("Missing ttf file");
 		let text = &graphics::Text::new(ctx, self.header.as_str(), ttf).expect("Error generating text");
 		graphics::set_color(ctx, [0.1, 0.1, 0.1, 1.0].into()).expect("Error setting color");
-		graphics::draw(ctx, text, graphics::Point2::new(topix(coords.0 + 1), topix(coords.1)), 0.0).expect("Error drawing header");	
+		graphics::draw(ctx, text, graphics::Point2::new(topix(coords.0 + 1), topix(coords.1)), 0.0).expect("Error drawing header"); 
 
 		//Draw underline
 		graphics::set_color(ctx, [0.1, 0.1, 0.1, 0.9].into()).expect("Error setting color"); 
@@ -191,11 +193,12 @@ impl UiElem<Frame> {
 	///
 	/// # Arguments
 	/// * 'x & y'  - The target coordinate.
-	pub fn mouse_click(&mut self, x:i32, y:i32) {
+	pub fn mouse_click(&mut self, x:i32, y:i32) -> Option<String> {
 		for frame in self.children.iter_mut() {
 			if frame.contains(x, y) {
-				frame.mouse_click();
+				return Some(frame.mouse_click().to_string());
 			}
 		}
+		None
 	}
 }

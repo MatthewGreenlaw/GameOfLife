@@ -17,11 +17,11 @@ pub struct Coord { x: i32, y: i32, }
 
 impl Coord {
 	pub fn new(x: i32, y: i32) -> Self {
-		Coord {	x: x, y: y, }
+		Coord { x: x, y: y, }
 	}
 
 	pub fn from((x, y): (i32, i32)) -> Self {
-		Coord {	x: x, y: y, }
+		Coord { x: x, y: y, }
 	}
 
 	pub fn get_coords(&self) -> (i32, i32) {

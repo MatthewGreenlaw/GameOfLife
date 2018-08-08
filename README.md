@@ -2,7 +2,7 @@
 This repository contains my final project for CS 410: Rust Programming at Portland State University. The project is an implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) using [Rust](https://www.rust-lang.org/en-US/) and the [ggez](https://github.com/ggez/ggez) 2D graphics framework. 
 
 # Stages of Development
-1. [x] [Benchmark 1](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/Benchmark-1): Basic implementation
+1. [x] [Stage 1](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/Benchmark-1): Basic implementation
    1. [x] Create basic game elements
       * [x] Cells
       * [x] Map
@@ -12,22 +12,28 @@ This repository contains my final project for CS 410: Rust Programming at Portla
       * [x] [run](https://docs.rs/ggez/0.3.1/ggez/event/fn.run.html)
    3. [x] Implement the clasic Game of Life [rules](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules)
 
-2. [ ] Benchmark 2: Add UI
+2. [x] [Stage 2](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/Stage-1): Add UI
    1. [x] Create basic UI elements
       * [x] Import and display ttf
       * [x] Game Map element
       * [x] Stats element
-      * [x] Player interaction element
       * [x] Options element
-   2. [ ] UI element functionality
-      * [x] User interaction with window
+      * [x] Advanced options element
+      
+   2. [x] UI and Mouse interaction
+      * [x] User interaction
          * [x] Capture mouse clicks
          * [x] Identify which area was clicked
       * [x] Update stat area with game statistics
-      * [ ] Add basic option menu
-2. [ ] Benchmark 3: User input and Advanced settings      
-   1. [ ] Add interaction menu to add life
-   2. [ ] Add advanced settings (IE. Play non-standard rules)
+      * [x] Option menu
+         * [x] Implement user interaction for menu
+         * [x] Update options upon user interaction
+
+2. [ ] Stage 3: Text input and Advanced settings
+   1. [ ] Capture keyboard clicks     
+   2. [ ] Advanced option menu
+      * [ ] Implement user interaction and text input for advanced menu
+      * [ ] Update options upon user interaction
 
 # Installation Instructions
 ## Windows 10 installation
