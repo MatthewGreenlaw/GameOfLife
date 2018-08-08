@@ -35,7 +35,7 @@ The Game of Life can be as complex as you want it to be and there are a lot of i
 
 <img src="screenshots/Stage1.png"
      alt="Stage-1"
-     style="float: left; margin-right: 10px; max-width: 3200px;" />
+     style="float: left; margin-right: 10px; max-width: 320px;" />
 
 2. [x] [Stage 2](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/Stage-2): Add UI
    1. [x] Create basic UI elements
