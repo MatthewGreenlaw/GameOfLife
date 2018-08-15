@@ -1,5 +1,5 @@
 # Project Introduction
-This repository contains my final project for CS 410: Rust Programming at Portland State University. The project is an implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) using [Rust](https://www.rust-lang.org/en-US/) and the [ggez](https://github.com/ggez/ggez) 2D graphics framework. 
+This repository contains my [final project](https://github.com/MatthewGreenlaw/GameOfLife/releases/tag/V1.0) for CS 410: Rust Programming at Portland State University. The project is an implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) using [Rust](https://www.rust-lang.org/en-US/) and the [ggez](https://github.com/ggez/ggez) 2D graphics framework. 
 
 ## Note on Compatibility
 This program was written and compiled in Windows using rustc 1.28.0-nightly (e3bf634e0 2018-06-28). Compiling the same code on other versions of the rust compiler may produce errors. Example: rustc 1.25.0 throws "non-reference patter used to match reference" errors from code in gol.rs on lines 79, 192, and 193 which can be solved by updating the following lines of gol.rs:
