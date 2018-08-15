@@ -160,10 +160,7 @@ impl event::EventHandler for Game{
 						]
 					));
 		}
-		
-
 		self.option.update(None);
-		
 		self.advanced.update(None);
 		Ok(())//Update for game-over scenario?
 	}
@@ -220,8 +217,8 @@ fn main() {
 		path_buffer.push("ttf");
 
 		//Build program
-		let window = &mut ggez::ContextBuilder::new("Game of Life    Copyright 2016 Matthew Greenlaw", "Matthew Greenlaw")
 		//https://docs.rs/ggez/0.4.1/ggez/struct.ContextBuilder.html
+		let window = &mut ggez::ContextBuilder::new("Game of Life    Copyright 2016 Matthew Greenlaw", "Matthew Greenlaw")
 		.window_setup(ggez::conf::WindowSetup::default().title("Game of Life"))
 		.window_mode(ggez::conf::WindowMode::default().dimensions(AREA_WINDOW_PIXELS.0 as u32, AREA_WINDOW_PIXELS.1 as u32))
 		.add_resource_path(path_buffer)
@@ -236,7 +233,7 @@ fn main() {
 		match event::run(window, game){
 		//https://docs.rs/ggez/0.3.0/ggez/event/fn.run.html
 			Ok(_) => println!("Copyright 2016 Matthew Greenlaw. Download from: https://github.com/MatthewGreenlaw/GameOfLife"),
-			Err(error) => println!("Error: {:?}", error),
+			Err(error) => println!("Error running game: {:?}", error),
 		}
 	}
 	else {

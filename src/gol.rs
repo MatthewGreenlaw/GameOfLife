@@ -59,6 +59,23 @@ impl World {
 		World { map: locals, generation:0, living: num_pop, dead: 0,}
 	}
 
+	/// Generates a new world given values for each data member
+	///
+	/// # Arguments
+	///
+	/// * 'map' - The map to use
+	/// * 'generation' - The desired starting generation
+	/// * 'living' - The desired count of living cells
+	/// * 'dead' - The desired count of dead cells
+	pub fn set_all (map: Vec<Vec<Option<Coord>>>, generation:i32, living: i32, dead: i32) -> Self {
+		World { 
+			map: map, 
+			generation: generation, 
+			living: living, 
+			dead: dead,
+		}
+	}
+
 	/// The classic rules of a Game of Life generation
 	/// * Make a static copy of the map to evaluate while updating the working map
 	/// * Gather the number of neighbors a cell has
@@ -96,7 +113,7 @@ impl World {
 	///
 	/// # Return
 	/// * i32 - The number of living neighbors around the target.
-	fn num_neighbors(map:&Vec<Vec<Option<Coord>>>, x:i32, y:i32) -> i32 {
+	pub fn num_neighbors(map:&Vec<Vec<Option<Coord>>>, x:i32, y:i32) -> i32 {
 		let neighbor = |x:i32, y:i32| {
 			match map[y as usize][x as usize] {
 				Some(_) => 1, //Living neighbor
@@ -174,7 +191,7 @@ impl World {
 	///   * i32 - Current total of living cells that died
 	pub fn update(&mut self) -> (i32, i32, i32) {
 		self.clasic_generation();
-		(self.generation, self.living, self.dead)//Update for game over scenario?
+		(self.generation, self.living, self.dead)
 	}
 
 	/// Passes draw command to living cells. Used to [draw in ggez](https://docs.rs/ggez/0.4.1/ggez/graphics/fn.draw.html).
@@ -211,3 +228,120 @@ impl World {
 		}
 	}
 }
+
+#[test]
+fn test_gol_update_and_classic_generation() {
+	//update calls classic generation and uses the values it sets.
+
+	//update -> (generation, living, dead)
+	//update causes a generation, and since the map only has one life it should kill it, 
+	//leaving no living and one dead
+	let mut world = World::new(1);
+	assert_eq!((1,0,1), world.update());
+
+	//Three live cells in a row causes a blinker structure which kills two cells each generation and creates two living cells.
+	//For each update, generation should go up by one, living should stay the same, and dead should go up by two.
+	let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];
+	locals [1][0] = Some(Coord::new(0, 1));
+	locals [1][1] = Some(Coord::new(1, 1));
+	locals [1][2] = Some(Coord::new(2, 1));
+	world = World::set_all(locals, 0, 3, 0);
+	assert_eq!((1,3,2), world.update());
+	assert_eq!((2,3,4), world.update());
+}
+
+#[test]
+fn test_gol_num_neighbors() {
+	let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];
+	for y in 0..HEIGHT_GAME_GRIDS {
+		for x in 0..WIDTH_GAME_GRIDS {
+			
+			locals [y as usize][x as usize] = Some(Coord::new(x, y));
+
+			if y == 0 {
+				//top left corner
+				if x == 0 {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y+1), "Should have one neighbor.");
+				}
+				//top right corner
+				else if x == WIDTH_GAME_GRIDS-1 {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y+1), "Should have one neighbor.");
+				}
+				//top row
+				else {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y+1), "Should have one neighbor.");
+				}
+			}
+			else if y == HEIGHT_GAME_GRIDS-1 {
+				//bottom left corner
+				if x == 0 {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y), "Should have one neighbor.");
+				}
+				//bottom right corner
+				else if x == WIDTH_GAME_GRIDS-1 {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y), "Should have one neighbor.");
+				}
+				//bottom row
+				else {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y), "Should have one neighbor.");
+				}
+			}
+			else {
+				//left column
+				if x == 0 {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y+1), "Should have one neighbor.");
+				}
+				//right column
+				else if x == WIDTH_GAME_GRIDS-1 {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y+1), "Should have one neighbor.");
+				}
+				//Anywhere in the middle
+				else {
+					assert_eq!(0, World::num_neighbors(&locals, x, y), "Should have no neighbors.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y-1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x-1, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x, y+1), "Should have one neighbor.");
+					assert_eq!(1, World::num_neighbors(&locals, x+1, y+1), "Should have one neighbor.");
+				}
+			}
+
+			locals [y as usize][x as usize] = None;
+		}
+	}
+} 

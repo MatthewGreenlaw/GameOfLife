@@ -59,6 +59,10 @@ impl Frame {
 		self.text = text.to_string();
 	}
 
+	fn get_text(&self) -> String {
+		self.text.clone()
+	}
+
 	/// Draws the header and text onto the program context at the designated coordinates. 
 	///
 	/// # Arguments
@@ -149,13 +153,17 @@ impl UiElem<Frame> {
 		//Varify that there is something to update with
 		match text {
 			Some(text) => {
-				//For each of the children, update it with the corasponding string. Order is important.
+				//For each of the children, update it with the corasponding text. Order is important.
 				for (i, frame) in self.children.iter_mut().enumerate() {
 					frame.update(text[i].as_str());
 				} 
 			},
 			None =>(),
 		}
+	}
+
+	pub fn nth_child(&mut self, index: i32) -> &Frame {
+		&self.children[index as usize]
 	}
 
 	/// Draws the header and underline, then sends the draw command to children. 
@@ -200,5 +208,53 @@ impl UiElem<Frame> {
 			}
 		}
 		None
+	}
+}
+
+#[test]
+fn test_frame_update() {
+	let height = 10;
+	let width = 10;
+
+	let mut frame = Frame::new((0, 0), height, width, 0, 0, "Frame header".to_string(), "Test text");
+	frame.update("updated");
+	assert_eq!("updated".to_string(), frame.get_text());
+}
+
+#[test]
+fn test_frame_contains() {
+	let frame_height = 10;
+	let frame_width = 10;
+	let mut frame = Frame::new((0, 0), frame_height, frame_width, 0, 0, "Test header".to_string(), "Test text");
+	for y in 1..frame_height {
+		for x in 1..frame_width {
+			assert!(frame.contains(x, y));
+		}
+	}
+}
+
+#[test]
+fn test_uielem_update() {
+	let height = 10;
+	let width = 10;
+
+	let frame = Frame::new((0, 0), height, width, 0, 0, "Frame header".to_string(), "Test text");
+	let mut elem = UiElem::new((0,0), height, width, "UiElem Header".to_string(), vec![frame]);
+	elem.update(Some(vec!["Updated".to_string()]));
+	assert_eq!("Updated".to_string(), elem.nth_child(0).get_text());
+}
+
+#[test]
+fn test_uielem_mouse_click() {
+	let height = 10;
+	let width = 10;
+
+	let frame = Frame::new((0, 0), height, width, 0, 0, "Frame header".to_string(), "Test text");
+	let mut elem = UiElem::new((0,0), height, width, "UiElem Header".to_string(), vec![frame]);
+
+	for y in 1..height {
+		for x in 1..width {
+			assert_eq!(Some("Frame header".to_string()), elem.mouse_click(x, y));
+		}
 	}
 }
