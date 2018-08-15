@@ -35,7 +35,6 @@ mod gol;
 use gol::{World};
 
 //Import user interface managment
-mod coord;
 mod ui;
 use ui::{UiElem, Frame};
 
@@ -208,9 +207,6 @@ impl event::EventHandler for Game{
 }
 
 fn main() {
-	//@todo
-	//get user input/args
-
 	//Check cargo manifest directory for external .ttf files
 	if let Ok(cargo_manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
 		let mut path_buffer = path::PathBuf::from(cargo_manifest_dir);

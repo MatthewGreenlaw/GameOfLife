@@ -20,7 +20,6 @@ use self::rand::Rng;
 extern crate ggez;
 use ggez::{Context, graphics};
 
-use coord::{Coord};
 use params::{
 	SIZE_GRID_PIXELS,
 	WIDTH_GAME_GRIDS, HEIGHT_GAME_GRIDS
@@ -29,9 +28,9 @@ use params::{
 /// Defines the map and meta data
 pub struct World {
 	/// A 2D vector of options representing cells on the map:
-	/// * A cell is alive if it has Some(Coord)
-	/// * A cell is dead if it has None
-	map: Vec<Vec<Option<Coord>>>,
+	/// * A cell is alive if it is true
+	/// * A cell is dead if it is false
+	map: Vec<Vec<bool>>,
 	///Tracks the number of times the world updates 
 	generation:i32,
 	///Tracks living cells
@@ -48,17 +47,18 @@ impl World {
 	/// * 'num_pop' - The initial population. Each population is located randomly.
 	pub fn new (num_pop: i32) -> Self {
 		let mut range = rand::thread_rng();
-		let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];  
+		let mut locals: Vec<Vec<bool>> = vec![vec![false; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];  
 
 		for _i in 0..num_pop {
 			let x = range.gen_range::<i32>(0, WIDTH_GAME_GRIDS as i32);
 			let y = range.gen_range::<i32>(0, HEIGHT_GAME_GRIDS as i32);
-			locals[y as usize][x as usize] = Some(Coord::new(x, y));
+			locals[y as usize][x as usize] = true;
 		}
 
 		World { map: locals, generation:0, living: num_pop, dead: 0,}
 	}
 
+	/// Used only in testing. 
 	/// Generates a new world given values for each data member
 	///
 	/// # Arguments
@@ -67,7 +67,8 @@ impl World {
 	/// * 'generation' - The desired starting generation
 	/// * 'living' - The desired count of living cells
 	/// * 'dead' - The desired count of dead cells
-	pub fn set_all (map: Vec<Vec<Option<Coord>>>, generation:i32, living: i32, dead: i32) -> Self {
+	#[allow(dead_code)]
+	pub fn set_all (map: Vec<Vec<bool>>, generation:i32, living: i32, dead: i32) -> Self {
 		World { 
 			map: map, 
 			generation: generation, 
@@ -83,7 +84,7 @@ impl World {
 	/// * Spawn life in a dead cell if it has exactly 3 living neighbors
 	pub fn clasic_generation(&mut self) {
 		//Capture the state of this generation's map
-		let generation: Vec<Vec<Option<Coord>>> = self.map.to_vec();
+		let generation: Vec<Vec<bool>> = self.map.to_vec();
 		let mut born = 0;
 		let mut died = 0;
 
@@ -94,8 +95,8 @@ impl World {
 				//Some = populated, check for population collaps
 				//None = unpopulated, check for population growth
 				match cell {
-					Some(_) => { if live_neighbors < 2 || live_neighbors > 3 { self.map[y][x] = None; died +=1} },
-					None => { if live_neighbors == 3 { self.map[y][x] = Some(Coord::new(x as i32,y as i32)); born += 1;} },
+					true => { if live_neighbors < 2 || live_neighbors > 3 { self.map[y][x] = false; died +=1} },
+					false => { if live_neighbors == 3 { self.map[y][x] = true; born += 1;} },
 				}
 			}
 		}
@@ -113,11 +114,11 @@ impl World {
 	///
 	/// # Return
 	/// * i32 - The number of living neighbors around the target.
-	pub fn num_neighbors(map:&Vec<Vec<Option<Coord>>>, x:i32, y:i32) -> i32 {
+	pub fn num_neighbors(map:&Vec<Vec<bool>>, x:i32, y:i32) -> i32 {
 		let neighbor = |x:i32, y:i32| {
 			match map[y as usize][x as usize] {
-				Some(_) => 1, //Living neighbor
-				None    => 0, //Dead neighbor
+				true => 1, //Living neighbor
+				false => 0, //Dead neighbor
 			}
 		};
 
@@ -181,7 +182,7 @@ impl World {
 		}
 	}
 
-	/// Updates cells in the map and returns world meta data.
+	/// Updates cells in the map and returns a tuple of world meta data.
 	/// Required function for ggez
 	///
 	/// # Return
@@ -203,26 +204,25 @@ impl World {
 		let boarder = 1;
 
 		//Loop over cells in the map
-		for row in self.map.iter() {
-			for life in row.iter() {
+		for (y, row) in self.map.iter().enumerate() {
+			for (x, life) in row.iter().enumerate() {
 				//Draw living cells
 				match life {
-					Some(cell) => {
-						let coord = cell.get_coords();
+					true => {
 						//set_color(r: f32, g: f32, b: f32 a: f32)
 						graphics::set_color(ctx, [0.5, 0.5, 0.5, 0.9].into()).expect("Error setting color"); 
 						graphics::rectangle(ctx, 
 							graphics::DrawMode::Fill,
 							//Rect(x: f32, y: f32, w: f32, h: f32)
 							graphics::Rect::new_i32 (
-								topix(coord.0), 
-								topix(coord.1), 
+								topix(x as i32), 
+								topix(y as i32), 
 								topix(1)-boarder, 
 								topix(1)-boarder,
 							)
 						).expect("Error drawing Rect");
 					},
-					None => (),
+					false => (),
 				}
 			}
 		}
@@ -241,10 +241,10 @@ fn test_gol_update_and_classic_generation() {
 
 	//Three live cells in a row causes a blinker structure which kills two cells each generation and creates two living cells.
 	//For each update, generation should go up by one, living should stay the same, and dead should go up by two.
-	let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];
-	locals [1][0] = Some(Coord::new(0, 1));
-	locals [1][1] = Some(Coord::new(1, 1));
-	locals [1][2] = Some(Coord::new(2, 1));
+	let mut locals: Vec<Vec<bool>> = vec![vec![false; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];
+	locals [1][0] = true;
+	locals [1][1] = true;
+	locals [1][2] = true;
 	world = World::set_all(locals, 0, 3, 0);
 	assert_eq!((1,3,2), world.update());
 	assert_eq!((2,3,4), world.update());
@@ -252,11 +252,11 @@ fn test_gol_update_and_classic_generation() {
 
 #[test]
 fn test_gol_num_neighbors() {
-	let mut locals: Vec<Vec<Option<Coord>>> = vec![vec![None; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];
+	let mut locals: Vec<Vec<bool>> = vec![vec![false; WIDTH_GAME_GRIDS as usize]; HEIGHT_GAME_GRIDS as usize];
 	for y in 0..HEIGHT_GAME_GRIDS {
 		for x in 0..WIDTH_GAME_GRIDS {
 			
-			locals [y as usize][x as usize] = Some(Coord::new(x, y));
+			locals [y as usize][x as usize] = true;
 
 			if y == 0 {
 				//top left corner
@@ -341,7 +341,7 @@ fn test_gol_num_neighbors() {
 				}
 			}
 
-			locals [y as usize][x as usize] = None;
+			locals [y as usize][x as usize] = false;
 		}
 	}
 } 

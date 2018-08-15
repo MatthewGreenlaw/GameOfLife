@@ -18,8 +18,28 @@ use ggez::{Context, graphics};
 use ggez::graphics::{Point2};
 
 //Import global parameters
-use coord::{Coord};
 use params::{ SIZE_GRID_PIXELS };
+
+///Define coordinates
+pub struct Coord { x: i32, y: i32, }
+
+impl Coord {
+	pub fn new(x: i32, y: i32) -> Self {
+		Coord { x: x, y: y, }
+	}
+
+	pub fn from((x, y): (i32, i32)) -> Self {
+		Coord { x: x, y: y, }
+	}
+
+	pub fn get_coords(&self) -> (i32, i32) {
+		(self.x, self.y)
+	}
+}
+
+impl Clone for Coord {
+	fn clone(&self) -> Coord { Coord::new(self.x, self.y) }
+}
 
 //Defines a base UI element that has a header and text
 pub struct Frame {
@@ -59,6 +79,9 @@ impl Frame {
 		self.text = text.to_string();
 	}
 
+	/// Used only in testing.
+	/// Getter for frame's text element
+	#[allow(dead_code)]
 	fn get_text(&self) -> String {
 		self.text.clone()
 	}
@@ -162,6 +185,9 @@ impl UiElem<Frame> {
 		}
 	}
 
+	/// Used only in testing.
+	/// Returns a reference to the of the UI element Nth child
+	#[allow(dead_code)]
 	pub fn nth_child(&mut self, index: i32) -> &Frame {
 		&self.children[index as usize]
 	}

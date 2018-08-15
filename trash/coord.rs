@@ -12,23 +12,3 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-///Define coordinates
-pub struct Coord { x: i32, y: i32, }
-
-impl Coord {
-	pub fn new(x: i32, y: i32) -> Self {
-		Coord { x: x, y: y, }
-	}
-
-	pub fn from((x, y): (i32, i32)) -> Self {
-		Coord { x: x, y: y, }
-	}
-
-	pub fn get_coords(&self) -> (i32, i32) {
-		(self.x, self.y)
-	}
-}
-
-impl Clone for Coord {
-	fn clone(&self) -> Coord { Coord::new(self.x, self.y) }
-}
